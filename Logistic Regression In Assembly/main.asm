@@ -5,6 +5,7 @@ INCLUDE irvine32.inc
 .code
 main PROC
 mov eax, 10
+mov ebx, 1000
 call Dumpregs
 
 exit
