@@ -11,18 +11,18 @@ main PROC
 MOV esi, OFFSET targetY
 MOV edi, OFFSET currScoreX
 MOV ecx, LENGTHOF targetY
-;L1:
-;	MOV eax, [esi]
-;	call WriteInt
-;	MOV edx, OFFSET sep
-;	call WriteString
-;	MOV eax, [edi]
-;	call WriteInt
-;	ADD esi, 4
-;	ADD edi, 4
-;	call crlf
-;LOOP L1
-
+PRINT:
+	MOV eax, [esi]
+	call WriteInt
+	MOV edx, OFFSET sep
+	call WriteString
+	MOV eax, [edi]
+	call WriteInt
+	ADD esi, 4
+	ADD edi, 4
+	call crlf
+LOOP PRINT
+call Crlf
 MOV medOfY , 0
 L1:
 	MOV ebx, [esi]
