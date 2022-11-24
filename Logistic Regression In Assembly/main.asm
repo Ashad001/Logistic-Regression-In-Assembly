@@ -1,8 +1,8 @@
 INCLUDE irvine32.inc
 
 .data 
-targetY     DWORD 186,127,158,141,168,185,185,184,117,179,144,179,133,91,150,157,159,112,132,169,209,166,199,158,221
-currScoreX  DWORD 90,115,112,129,120,130,103,133,109,140,100,149,111,75,140,89,100,97,110,128,135,155,180,142,149
+targetY     DWORD 186,127,158,141,168,185,185,184,117,179,144,179,133,121,150,157,159,112,132,169,209,166,199,158,221
+currScoreX  DWORD 90,115,112,129,120,130,103,133,109,140,100,149,111,110,140,89,100,97,110,128,135,155,180,142,149
 medianX     Byte "The mean of CurrentScoreX is: ",0
 medianY	    Byte "The mean of targetY is: ",0
 y_intercept Byte "The y-intercept is equal to: ",0
@@ -10,6 +10,10 @@ slope	    Byte "The slope is equal to: ",0
 co_relation Byte "The co-relation constant is equal to: ",0
 SDX		    Byte "The standard deviation of x is equal to: ",0
 SDY 	    Byte "The standard deviation of y is equal to: ",0
+SummationX  Byte "The sum of current score is equal to: ",0
+SummationY  Byte "The sum of target is equal to: ",0
+SumX		DWORD ?
+SumY		DWORD ?
 sep		    Byte " | ", 0
 medOfX      DWORD ?
 medOfY      DWORD ?
@@ -24,10 +28,10 @@ main PROC
 MOV esi, OFFSET targetY
 MOV edi, OFFSET currScoreX
 MOV ecx, LENGTHOF targetY
+MOV edx, OFFSET sep
 L1:
 	MOV eax, [esi]
 	call WriteInt
-	MOV edx, OFFSET sep
 	call WriteString
 	MOV eax, [edi]
 	call WriteDec
@@ -38,12 +42,24 @@ LOOP L1
 call crlf
 call crlf
 
-; calling median function to calculate the median of x
-push OFFSET medOfX
+; calling sum and median function to calculate the average of x
+; calling sum
+push OFFSET SumX
 push OFFSET currScoreX
 push lengthof currScoreX
-push TYPE targetY
+push TYPE currScoreX
+call sumarr
+; calling median
+push OFFSET medOfX
+push Offset SumX
+push lengthof currScoreX
 call median
+mov edx, OFFSET SummationX
+call WriteString
+mov eax, SumX
+call WriteDec
+call crlf
+call crlf
 mov edx, OFFSET medianX
 call WriteString
 mov eax, medOfX
@@ -51,12 +67,24 @@ call WriteDec
 call crlf
 call crlf
 
-; calling median function to calculate the median of y
-push OFFSET medOfY
+; calling sum and median function to calculate the average of y
+; calling sum
+push OFFSET SumY
 push OFFSET targetY
 push lengthof targetY
 push TYPE targetY
+call sumarr
+; calling median
+push OFFSET medOfY
+push Offset SumY
+push lengthof targetY
 call median
+mov edx, OFFSET SummationY
+call WriteString
+mov eax, SumY
+call WriteDec
+call crlf
+call crlf
 mov edx, OFFSET medianY
 call WriteString
 mov eax, medOfY
@@ -97,26 +125,37 @@ main ENDP
 
 
 
-median PROC
+sumarr PROC
 	push ebp
 	mov ebp, esp
 	mov edx, DWORD PTR [ebp+8]		; type
 	mov ecx, DWORD PTR [ebp+12]		; length
 	mov esi, DWORD PTR [ebp+16]		; offset target
-	mov edi, DWORD PTR [ebp+20]		; offset median var
+	mov edi, DWORD PTR [ebp+20]		; sum var offset
 	mov eax, 0
-	mov ebx, ecx
 	L2:
 		ADD eax, [esi]
 		add esi, edx
 	loop L2
-	mov edx, 0
-	mov esi, 0
-	div ebx
 	mov [edi], eax
 	mov esp, ebp
 	pop ebp
 	ret 16
+sumarr ENDP
+
+median PROC
+	push ebp
+	mov ebp, esp
+	mov ebx, DWORD PTR [ebp+8]		; length
+	mov esi, DWORD PTR [ebp+12]		; offset sum var
+	mov edi, DWORD PTR [ebp+16]		; offset median var
+	mov eax, 0
+	mov eax, [esi]
+	div ebx
+	mov [edi], eax
+	mov esp, ebp
+	pop ebp
+	ret 12
 median ENDP
 
 ;StandardDeviation PROC
