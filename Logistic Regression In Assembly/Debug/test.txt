@@ -12,7 +12,7 @@ co_relation Byte "The co-relation constant is equal to: ",0
 SDX		    Byte "The standard deviation of x is equal to: ",0
 SDY 	    Byte "The standard deviation of y is equal to: ",0
 sep		    Byte " | ", 0
-medOfX      REAL8 ?
+medOfX      DWORD ?
 medOfY      DWORD ?
 StandardX   DWORD ?
 StandardY	DWORD ?
@@ -48,9 +48,8 @@ push TYPE targetY
 call median
 mov edx, OFFSET medianX
 call WriteString
-;mov eax, medOfX
-fld medOfX
-call WriteFloat
+mov eax, medOfX
+call WriteDec
 call crlf
 call crlf
 
@@ -103,10 +102,10 @@ main ENDP
 median PROC
 	push ebp
 	mov ebp, esp
-;	mov edx, DWORD PTR [ebp+8]		; type
-	mov ecx, DWORD PTR [ebp+8]		; length
-	mov esi, DWORD PTR [ebp+12]		; offset target
-	mov edi, DWORD PTR [ebp+16]		; offset median var
+	mov edx, DWORD PTR [ebp+8]		; type
+	mov ecx, DWORD PTR [ebp+12]		; length
+	mov esi, DWORD PTR [ebp+16]		; offset target
+	mov edi, DWORD PTR [ebp+20]		; offset median var
 	mov eax, 0
 	mov ebx, ecx
 	L2:
@@ -119,7 +118,7 @@ median PROC
 	mov [edi], eax
 	mov esp, ebp
 	pop ebp
-	ret 12
+	ret 16
 median ENDP
 
 ;StandardDeviation PROC
