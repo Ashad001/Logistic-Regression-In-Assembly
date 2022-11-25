@@ -1,4 +1,5 @@
 INCLUDE irvine32.inc
+INCLUDE macros.inc
 
 .data 
 targetY     DWORD 186,127,158,141,168,185,185,184,117,179,144,179,133,121,150,157,159,112,132,169,209,166,199,158,221
@@ -15,81 +16,112 @@ SummationY  Byte "The sum of target is equal to: ",0
 SumX		DWORD ?
 SumY		DWORD ?
 sep		    Byte " | ", 0
-medOfX      DWORD ?
-medOfY      DWORD ?
+medOfX      REAL8 ?
+medOfY      REAL8 ?
 StandardX   DWORD ?
 StandardY	DWORD ?
+temp		DWORD ?
 
 
 .code
 main PROC
 
 ; Printing both the x and y co-ordinate arrays
-MOV esi, OFFSET targetY
-MOV edi, OFFSET currScoreX
-MOV ecx, LENGTHOF targetY
-MOV edx, OFFSET sep
-L1:
-	MOV eax, [esi]
-	call WriteInt
-	call WriteString
-	MOV eax, [edi]
-	call WriteDec
-	ADD esi, 4
-	ADD edi, 4
+	MOV esi, OFFSET targetY
+	MOV edi, OFFSET currScoreX
+	MOV ecx, LENGTHOF targetY
+	MOV edx, OFFSET sep
+	L1:
+		MOV eax, [esi]
+		call WriteInt
+		call WriteString
+		MOV eax, [edi]
+		call WriteDec
+		ADD esi, 4
+		ADD edi, 4
+		call crlf
+	LOOP L1
 	call crlf
-LOOP L1
-call crlf
-call crlf
+	call crlf
 
 ; calling sum and median function to calculate the average of x
 ; calling sum
-push OFFSET SumX
-push OFFSET currScoreX
-push lengthof currScoreX
-push TYPE currScoreX
-call sumarr
+	push OFFSET SumX
+	push OFFSET currScoreX
+	push lengthof currScoreX
+	push TYPE currScoreX
+	call sumarr
 ; calling median
-push OFFSET medOfX
-push Offset SumX
-push lengthof currScoreX
-call median
-mov edx, OFFSET SummationX
-call WriteString
-mov eax, SumX
-call WriteDec
-call crlf
-call crlf
-mov edx, OFFSET medianX
-call WriteString
-mov eax, medOfX
-call WriteDec
-call crlf
-call crlf
+	MOV ecx, LENGTHOF currScoreX
+	MOV temp, ecx
+	MOV esi, 0
+	fldz
+	MED1:
+		fild currScoreX[esi]
+		fadd 
+		ADD esi, TYPE DWORD
+	LOOP MED1
+	fidiv temp
+	fstp medOfX
+	fld medOfX
+	call WriteFloat
+	call Crlf
+	;push OFFSET medOfX
+	;push Offset SumX
+	;push lengthof currScoreX
+	;call median
+	;mov edx, OFFSET SummationX
+	;call WriteString
+	;mov eax, SumX
+	;call WriteDec
+	;call crlf
+	;call crlf
+	;mov edx, OFFSET medianX
+	;call WriteString
+	;mov eax, medOfX
+	;call WriteDec
+	;call crlf
+	;call crlf
+
 
 ; calling sum and median function to calculate the average of y
 ; calling sum
-push OFFSET SumY
-push OFFSET targetY
-push lengthof targetY
-push TYPE targetY
-call sumarr
+	push OFFSET SumY
+	push OFFSET targetY
+	push lengthof targetY
+	push TYPE targetY
+	call sumarr
 ; calling median
-push OFFSET medOfY
-push Offset SumY
-push lengthof targetY
-call median
-mov edx, OFFSET SummationY
-call WriteString
-mov eax, SumY
-call WriteDec
-call crlf
-call crlf
-mov edx, OFFSET medianY
-call WriteString
-mov eax, medOfY
-call WriteDec
-call crlf
+	MOV ecx, LENGTHOF targetY
+	MOV temp, ecx
+	MOV esi, 0
+	fldz
+	MED2:
+		fild targetY[esi]
+		fadd 
+		ADD esi, TYPE DWORD
+	LOOP MED2
+	fidiv temp
+	fstp medOfY
+	fld medOfY
+	call WriteFloat
+	call Crlf
+
+	;push OFFSET medOfY
+	;push Offset SumY
+	;push lengthof targetY
+	;call median
+	;mov edx, OFFSET SummationY
+	;call WriteString
+	;mov eax, SumY
+	;call WriteDec
+	;call crlf
+	;call crlf
+	;mov edx, OFFSET medianY
+	;call WriteString
+	;mov eax, medOfY
+	;call WriteDec
+	;call crlf
 call crlf
 
 ;; calling function to calculate the standard deviation of x
