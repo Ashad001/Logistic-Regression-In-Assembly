@@ -13,143 +13,236 @@ SDX		    Byte "The standard deviation of x is equal to: ",0
 SDY 	    Byte "The standard deviation of y is equal to: ",0
 SummationX  Byte "The sum of current score is equal to: ",0
 SummationY  Byte "The sum of target is equal to: ",0
+equation	BYTE "The equation of linear regression is: ",0
+r			REAL8 ?
 SumX		DWORD ?
 SumY		DWORD ?
 sep		    Byte " | ", 0
 medOfX      REAL8 ?
 medOfY      REAL8 ?
-StandardX   DWORD ?
-StandardY	DWORD ?
-temp		DWORD ?
+StandardX   REAL8 ?
+StandardY	REAL8 ?
+temp		SDWORD ?
 
 
 .code
 main PROC
 
 ; Printing both the x and y co-ordinate arrays
-	MOV esi, OFFSET targetY
-	MOV edi, OFFSET currScoreX
-	MOV ecx, LENGTHOF targetY
-	MOV edx, OFFSET sep
-	L1:
-		MOV eax, [esi]
-		call WriteInt
-		call WriteString
-		MOV eax, [edi]
-		call WriteDec
-		ADD esi, 4
-		ADD edi, 4
-		call crlf
-	LOOP L1
+MOV esi, OFFSET targetY
+MOV edi, OFFSET currScoreX
+MOV ecx, LENGTHOF targetY
+MOV edx, OFFSET sep
+Display:
+	MOV eax, [esi]
+	call WriteInt
+	call WriteString
+	MOV eax, [edi]
+	call WriteDec
+	ADD esi, 4
+	ADD edi, 4
 	call crlf
-	call crlf
+LOOP Display
+call crlf
+call crlf
 
 ; calling sum and median function to calculate the average of x
 ; calling sum
-	push OFFSET SumX
-	push OFFSET currScoreX
-	push lengthof currScoreX
-	push TYPE currScoreX
-	call sumarr
+push OFFSET SumX
+push OFFSET currScoreX
+push lengthof currScoreX
+push TYPE currScoreX
+call sumarr
+mov edx, OFFSET SummationX
+call WriteString
+mov eax, SumX
+call WriteDec
+call crlf
 ; calling median
-	MOV ecx, LENGTHOF currScoreX
-	MOV temp, ecx
-	MOV esi, 0
-	fldz
-	MED1:
-		fild currScoreX[esi]
-		fadd 
-		ADD esi, TYPE DWORD
-	LOOP MED1
-	fidiv temp
-	fstp medOfX
-	fld medOfX
-	call WriteFloat
-	call Crlf
-	;push OFFSET medOfX
-	;push Offset SumX
-	;push lengthof currScoreX
-	;call median
-	;mov edx, OFFSET SummationX
-	;call WriteString
-	;mov eax, SumX
-	;call WriteDec
-	;call crlf
-	;call crlf
-	;mov edx, OFFSET medianX
-	;call WriteString
-	;mov eax, medOfX
-	;call WriteDec
-	;call crlf
-	;call crlf
+MOV ecx, LENGTHOF currScoreX
+MOV temp, ecx
+MOV esi, 0
+fldz
+MED1:
+	fild currScoreX[esi]
+	fadd 
+	ADD esi, TYPE DWORD
+LOOP MED1
+fidiv temp
+fstp medOfX
+fld medOfX
+mov edx, OFFSET medianX
+call WriteString
+call WriteFloat
+call crlf
 
 
 ; calling sum and median function to calculate the average of y
 ; calling sum
-	push OFFSET SumY
-	push OFFSET targetY
-	push lengthof targetY
-	push TYPE targetY
-	call sumarr
+push OFFSET SumY
+push OFFSET targetY
+push lengthof targetY
+push TYPE targetY
+call sumarr
+mov edx, OFFSET SummationY
+call WriteString
+mov eax, SumY
+call WriteDec
+call crlf
 ; calling median
-	MOV ecx, LENGTHOF targetY
-	MOV temp, ecx
-	MOV esi, 0
-	fldz
-	MED2:
-		fild targetY[esi]
-		fadd 
-		ADD esi, TYPE DWORD
-	LOOP MED2
-	fidiv temp
-	fstp medOfY
-	fld medOfY
-	call WriteFloat
-	call Crlf
-
-	;push OFFSET medOfY
-	;push Offset SumY
-	;push lengthof targetY
-	;call median
-	;mov edx, OFFSET SummationY
-	;call WriteString
-	;mov eax, SumY
-	;call WriteDec
-	;call crlf
-	;call crlf
-	;mov edx, OFFSET medianY
-	;call WriteString
-	;mov eax, medOfY
-	;call WriteDec
-	;call crlf
+MOV ecx, LENGTHOF targetY
+MOV temp, ecx
+MOV esi, 0
+fldz
+MED2:
+	fild targetY[esi]
+	fadd 
+	ADD esi, TYPE DWORD
+LOOP MED2
+fidiv temp
+fstp medOfY
+fld medOfY
+mov edx, OFFSET medianY
+call WriteString
+call WriteFloat
 call crlf
 
-;; calling function to calculate the standard deviation of x
-;push OFFSET medOfX
-;push OFFSET StandardX
-;push OFFSET CurrentScoreX
-;push lengthof CurrentScoreX
-;push TYPE CurrentScoreX
-;call StandardDeviation
-;mov edx, OFFSET SDX
+; calculating the standard deviation of x
+mov ecx, lengthof CurrScoreX
+mov esi, 0
+mov temp, 0
+finit
+fldz
+fld medOfX
+SD1:
+	fild CurrScoreX[esi]
+	fsub st,st(1)
+	fmul st, st(0)
+	faddp st(2), st
+	add esi, TYPE CurrScoreX
+loop SD1
+mov eax, lengthof CurrScoreX
+dec eax
+mov temp, eax
+fild temp
+fdiv
+fstp st(1)
+fsqrt
+fst StandardX
+mov edx, OFFSET SDX
+call WriteString
+call WriteFloat
+call crlf
+
+
+; calculating the standard deviation of y
+mov ecx, lengthof targetY
+mov esi, 0
+mov temp, 0
+finit
+fldz
+fld medOfY
+SD2:
+	fild targetY[esi]
+	fsub st,st(1)
+	fmul st, st(0)
+	faddp st(2), st
+	add esi, TYPE targetY
+loop SD2
+mov eax, lengthof targetY
+dec eax
+mov temp, eax
+fild temp
+fdiv
+fstp st(1)
+fsqrt
+fst StandardY
+mov edx, OFFSET SDY
+call WriteString
+call WriteFloat
+call crlf
+
+; calculating the value of r
+mov ecx, lengthof CurrScoreX
+mov esi, 0
+mov temp, 0
+finit
+fldz
+fldz
+fldz
+fld medofY
+fld medOfX
+corelation:
+	fild targetY[esi]
+	fsub st, st(2)
+	fild CurrScoreX[esi]
+	fsub st, st(2)
+	fld st(0)
+	fmul st, st(1)
+	fadd st(6), st
+	fxch st(2)
+	fst st(2)
+	fmul st, st(2)
+	faddp st(7), st
+	fmul
+	faddp st(5), st
+	add esi, TYPE DWORD
+loop corelation
+fxch st(4)
+fmul st, st(3)
+fsqrt
+fxch st(2)
+fdiv st, st(2)
+fst r
+mov edx, OFFSET co_relation
+call WriteString
+call WriteFloat 
+call crlf
+
+
+; printing all the result (is ko delete nahi krna)
+;mov edx, OFFSET SummationX
 ;call WriteString
-;mov eax, StandardX
+;mov eax, SumX
 ;call WriteDec
-;call crlf
 ;call crlf
 ;
-;; calling function to calculate the standard deviation of y
-;push OFFSET medOfY
-;push OFFSET StandardY
-;push OFFSET targetY
-;push lengthof targetY
-;push TYPE targetY
-;call StandardDeviation
-;mov edx, OFFSET SDY
+;mov edx, OFFSET SummationY
 ;call WriteString
-;mov eax, StandardY
+;mov eax, SumY
 ;call WriteDec
 ;call crlf
+;
+;finit
+;
+;mov edx, OFFSET medianX
+;call WriteString
+;fst medOfX
+;call WriteFloat
+;call Crlf
+;
+;mov edx, OFFSET medianY
+;call WriteString
+;fst medOfY
+;call WriteFloat
+;call Crlf
+;
+;mov edx, OFFSET SDX
+;call WriteString
+;fst StandardX
+;call WriteFloat
+;call crlf
+;
+;mov edx, OFFSET SDY
+;call WriteString
+;fst StandardY
+;call WriteFloat
+;call crlf
+;
+;mov edx, OFFSET co_relation
+;call WriteString
+;fst r
+;call WriteFloat
 ;call crlf
 
 exit
@@ -174,48 +267,5 @@ sumarr PROC
 	pop ebp
 	ret 16
 sumarr ENDP
-
-median PROC
-	push ebp
-	mov ebp, esp
-	mov ebx, DWORD PTR [ebp+8]		; length
-	mov esi, DWORD PTR [ebp+12]		; offset sum var
-	mov edi, DWORD PTR [ebp+16]		; offset median var
-	mov eax, 0
-	mov eax, [esi]
-	div ebx
-	mov [edi], eax
-	mov esp, ebp
-	pop ebp
-	ret 12
-median ENDP
-
-;StandardDeviation PROC
-;	push ebp
-;	mov ebp, esp
-;	mov edx, DWORD PTR [ebp+8]		; type
-;	mov ecx, DWORD PTR [ebp+12]		; length
-;	mov esi, DWORD PTR [ebp+16]		; offset target
-;	mov edi, DWORD PTR [ebp+20]		; offset standard deviation var
-;	mov eax, DWORD PTR [ebp+24]		; offset of mean value
-;	mov DWORD PTR [ebp-4], eax
-;	mov eax, 0
-;	mov ebx, ecx
-;	dec ebx
-;	l1:
-;		mov DWORD PTR [ebp-8], [esi]
-;		sub [esi], [ebp-4]
-;		mov eax, [esi]
-;		mul [esi]
-;		add DWORD PTR [ebp-12], eax
-;		mov [esi], DWORD PTR [ebp-8]
-;	loop l1
-;	mov eax, [ebp-12]
-;	div ebx
-;	; applying square root
-;	mov [edi], eax
-;	mov esp, ebp
-;	ret 20
-;StandardDeciation ENDP
 
 END main
