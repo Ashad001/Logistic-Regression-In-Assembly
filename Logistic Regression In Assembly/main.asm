@@ -28,12 +28,17 @@ a			REAL8 ?
 b			REAL8 ?
 SumX		DWORD ?
 SumY		DWORD ?
+MeanSubSumX	Real8 ?
+MeanSubSumY	Real8 ?
 sep		    Byte " | ", 0
 medOfX      REAL8 ?
 medOfY      REAL8 ?
 StandardX   REAL8 ?
 StandardY	REAL8 ?
 temp		SDWORD ?
+temporary1	Real8 0.00
+temporary2  DWORD 0
+temporary3	Real8 0.00
 
 
 .code
@@ -56,49 +61,6 @@ Display:
 LOOP Display
 call crlf
 call crlf
-
-; initializing the mansub array for both the co-ordinates
-MeanSubforX:
-	mov esi, 0
-	mov edi, 0
-	mov ecx, lengthof CurrScoreX
-	mov edx, OFFSET meanX
-	call WriteString
-	call crlf
-	finit
-	fld medOfX
-	XMeanCalculate:
-		fild CurrScoreX[esi * TYPE CurrScoreX]
-		fsub st, st(1)
-		call WriteFloat
-		call crlf
-		fstp XMeanSub[esi * TYPE XMeanSub]
-		inc esi
-		inc edi
-	loop XMeanCalculate
-	call crlf
-	call crlf
-
-MeanSubforY:
-	mov esi, 0
-	mov edi, 0
-	mov ecx, lengthof targetY
-	mov edx, OFFSET meanY
-	call WriteString
-	call crlf
-	finit
-	fld medOfY
-	YMeanCalculate:
-		fild targetY[esi * TYPE targetY]
-		fsub st, st(1)
-		call WriteFloat
-		call crlf
-		fstp YMeanSub[esi * TYPE YMeanSub]
-		inc esi
-		inc edi
-	loop YMeanCalculate
-	call crlf
-	call crlf
 
 
 ; calling sum and median function to calculate the average of x
@@ -162,26 +124,74 @@ call WriteString
 call WriteFloat
 call crlf
 
+; initializing the mansub array for both the co-ordinates
+MeanSubforX:
+	mov esi, 0
+	mov edi, 0
+	mov ecx, lengthof CurrScoreX
+	mov edx, OFFSET meanX
+	call WriteString
+	call crlf
+	finit
+	fld medOfX
+	XMeanCalculate:
+		fild CurrScoreX[esi * TYPE CurrScoreX]
+		fsub st, st(1)
+		call WriteFloat
+		call crlf
+		fstp XMeanSub[esi * TYPE XMeanSub]
+		inc esi
+		inc edi
+	loop XMeanCalculate
+	call crlf
+	call crlf
+
+MeanSubforY:
+	mov esi, 0
+	mov edi, 0
+	mov ecx, lengthof targetY
+	mov edx, OFFSET meanY
+	call WriteString
+	call crlf
+	finit
+	fld medOfY
+	YMeanCalculate:
+		fild targetY[esi * TYPE targetY]
+		fsub st, st(1)
+		call WriteFloat
+		call crlf
+		fstp YMeanSub[esi * TYPE YMeanSub]
+		inc esi
+		inc edi
+	loop YMeanCalculate
+	call crlf
+	call crlf
+
 ; calculating the standard deviation of x
 mov ecx, lengthof CurrScoreX
 mov esi, 0
-mov temp, 0
+mov edi, 0
 finit
 fldz
-fld medOfX
+fst temporary1
+finit
 SD1:
-	fild CurrScoreX[esi]
-	fsub st,st(1)
-	fmul st, st(0)
-	faddp st(2), st
-	add esi, TYPE CurrScoreX
+	finit
+	fld Xmeansub[esi * TYPE Xmeansub]
+	fld Xmeansub[esi * TYPE Xmeansub]
+	fmul st, st(1)
+	fld temporary1
+	fadd st, st(1)
+	fst temporary1
+	inc esi
 loop SD1
-mov eax, lengthof CurrScoreX
-dec eax
-mov temp, eax
-fild temp
-fdiv
-fstp st(1)
+fst MeanSubSumX
+mov temporary2, lengthof Xmeansub
+dec temporary2
+finit
+fild temporary2
+fld temporary1
+fdiv st, st(1)
 fsqrt
 fst StandardX
 mov edx, OFFSET SDX
@@ -193,23 +203,28 @@ call crlf
 ; calculating the standard deviation of y
 mov ecx, lengthof targetY
 mov esi, 0
-mov temp, 0
+mov edi, 0
 finit
 fldz
-fld medOfY
+fst temporary1
+finit
 SD2:
-	fild targetY[esi]
-	fsub st,st(1)
-	fmul st, st(0)
-	faddp st(2), st
-	add esi, TYPE targetY
+	finit
+	fld Ymeansub[esi * TYPE ymeansub]
+	fld Ymeansub[esi * TYPE ymeansub]
+	fmul st, st(1)
+	fld temporary1
+	fadd st, st(1)
+	fst temporary1
+	inc esi
 loop SD2
-mov eax, lengthof targetY
-dec eax
-mov temp, eax
-fild temp
-fdiv
-fstp st(1)
+fst MeanSubSumY
+mov temporary2, lengthof Ymeansub
+dec temporary2
+finit
+fild temporary2
+fld temporary1
+fdiv st, st(1)
 fsqrt
 fst StandardY
 mov edx, OFFSET SDY
@@ -220,34 +235,29 @@ call crlf
 ; calculating the value of r
 mov ecx, lengthof CurrScoreX
 mov esi, 0
-mov temp, 0
 finit
 fldz
-fldz
-fldz
-fld medofY
-fld medOfX
+fst temporary1
 corelation:
-	fild targetY[esi]
-	fsub st, st(2)
-	fild CurrScoreX[esi]
-	fsub st, st(2)
-	fld st(0)
+	finit
+	fld Ymeansub[esi * TYPE Ymeansub]
+	fld Xmeansub[esi * TYPE Xmeansub]
 	fmul st, st(1)
-	fadd st(6), st
-	fxch st(2)
-	fst st(2)
-	fmul st, st(2)
-	faddp st(7), st
-	fmul
-	faddp st(5), st
-	add esi, TYPE DWORD
+	fld temporary1
+	fadd st, st(1)
+	fst temporary1
+	inc esi
 loop corelation
-fxch st(4)
-fmul st, st(3)
+finit
+fld MeanSubSumX
+fld MeanSubSumY
+fmul st, st(1)
 fsqrt
-fxch st(2)
-fdiv st, st(2)
+fst temporary3
+finit
+fld temporary3
+fld temporary1
+fdiv st, st(1)
 fst r
 mov edx, OFFSET co_relation
 call WriteString
@@ -259,13 +269,13 @@ mov edx, OFFSET slopeVal
 call WriteString
 CalculateB:
 	finit
-	fld r
-	fld StandardY
 	fld StandardX
+	fld StandardY
 	fdiv st, st(1)
-	fmul
-	call WriteFloat
+	fld r
+	fmul st, st(1)
 	fst b
+	call WriteFloat
 	call crlf
 
 ; calculating the value of intercept (a value)
@@ -273,28 +283,29 @@ mov edx, OFFSET interVal
 call WriteString
 CalculateA:
 	finit
-	fld medofY
 	fld b
 	fld medOfX
-	fmul
-	fsub
-	call WriteFloat
+	fmul st, st(1)
+	fld medOfY
+	fsub st, st(1)
 	fst a
+	call WriteFloat
 	call crlf
 
 ; displaying the equation
 call crlf
 call crlf
-finit
 mov edx, OFFSET equation
 call WriteString
 call crlf
 mov edx, OFFSET y
 call WriteString
+finit
 fld a 
 call WriteFloat
 mov edx, OFFSET addition
 call WriteString
+finit
 fld b
 call WriteFloat
 mov edx, OFFSET x
