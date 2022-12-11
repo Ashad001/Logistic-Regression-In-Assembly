@@ -4,6 +4,10 @@ INCLUDE macros.inc
 .data 
 targetY     DWORD 186,127,158,141,168,185,185,184,117,179,144,179,133,121,150,157,159,112,132,169,209,166,199,158,221
 currScoreX  DWORD 90,115,112,129,120,130,103,133,109,140,100,149,111,110,140,89,100,97,110,128,135,155,180,142,149
+XMeanSub    REAL8 lengthof currScoreX DUP (?)
+YMeanSub    REAL8 lengthof targetY DUP (?)
+meanX		BYTE "The mean sub array of x is: ",0
+meanY		BYTE "The mean sub array of y is: ",0
 medianX     Byte "The mean of CurrentScoreX is: ",0
 medianY	    Byte "The mean of targetY is: ",0
 y_intercept Byte "The y-intercept is equal to: ",0
@@ -14,7 +18,14 @@ SDY 	    Byte "The standard deviation of y is equal to: ",0
 SummationX  Byte "The sum of current score is equal to: ",0
 SummationY  Byte "The sum of target is equal to: ",0
 equation	BYTE "The equation of linear regression is: ",0
+slopeVal	BYTE "The value of b is: ",0
+interVal	BYTE "The value of a is: ",0
+addition	BYTE " + ",0
+x			BYTE " . x",0
+y			BYTE "y = "
 r			REAL8 ?
+a			REAL8 ?
+b			REAL8 ?
 SumX		DWORD ?
 SumY		DWORD ?
 sep		    Byte " | ", 0
@@ -35,7 +46,7 @@ MOV ecx, LENGTHOF targetY
 MOV edx, OFFSET sep
 Display:
 	MOV eax, [esi]
-	call WriteInt
+	call WriteDec
 	call WriteString
 	MOV eax, [edi]
 	call WriteDec
@@ -45,6 +56,50 @@ Display:
 LOOP Display
 call crlf
 call crlf
+
+; initializing the mansub array for both the co-ordinates
+MeanSubforX:
+	mov esi, 0
+	mov edi, 0
+	mov ecx, lengthof CurrScoreX
+	mov edx, OFFSET meanX
+	call WriteString
+	call crlf
+	finit
+	fld medOfX
+	XMeanCalculate:
+		fild CurrScoreX[esi * TYPE CurrScoreX]
+		fsub st, st(1)
+		call WriteFloat
+		call crlf
+		fstp XMeanSub[esi * TYPE XMeanSub]
+		inc esi
+		inc edi
+	loop XMeanCalculate
+	call crlf
+	call crlf
+
+MeanSubforY:
+	mov esi, 0
+	mov edi, 0
+	mov ecx, lengthof targetY
+	mov edx, OFFSET meanY
+	call WriteString
+	call crlf
+	finit
+	fld medOfY
+	YMeanCalculate:
+		fild targetY[esi * TYPE targetY]
+		fsub st, st(1)
+		call WriteFloat
+		call crlf
+		fstp YMeanSub[esi * TYPE YMeanSub]
+		inc esi
+		inc edi
+	loop YMeanCalculate
+	call crlf
+	call crlf
+
 
 ; calling sum and median function to calculate the average of x
 ; calling sum
@@ -199,6 +254,54 @@ call WriteString
 call WriteFloat 
 call crlf
 
+; calculating the value of slope (b value)
+mov edx, OFFSET slopeVal
+call WriteString
+CalculateB:
+	finit
+	fld r
+	fld StandardY
+	fld StandardX
+	fdiv st, st(1)
+	fmul
+	call WriteFloat
+	fst b
+	call crlf
+
+; calculating the value of intercept (a value)
+mov edx, OFFSET interVal
+call WriteString
+CalculateA:
+	finit
+	fld medofY
+	fld b
+	fld medOfX
+	fmul
+	fsub
+	call WriteFloat
+	fst a
+	call crlf
+
+; displaying the equation
+call crlf
+call crlf
+finit
+mov edx, OFFSET equation
+call WriteString
+call crlf
+mov edx, OFFSET y
+call WriteString
+fld a 
+call WriteFloat
+mov edx, OFFSET addition
+call WriteString
+fld b
+call WriteFloat
+mov edx, OFFSET x
+call WriteString
+call crlf
+call crlf
+
 
 ; printing all the result (is ko delete nahi krna)
 ;mov edx, OFFSET SummationX
@@ -247,8 +350,6 @@ call crlf
 
 exit
 main ENDP
-
-
 
 sumarr PROC
 	push ebp
