@@ -368,7 +368,7 @@ MOV centerX, 60d
 MOV centerY, 14d
 call readint
 call clrscr
-;call Loading  ; Itna Farigh nahi hn m
+call Loading
 
 call ClrScr
 fld StandardX
