@@ -86,8 +86,8 @@ tempP		SDWORD ?
 pred		REAL8 0.0
 midVal		REAL8 0.0
 toMul		REAL8 3.5
-compar		REAL8 0.5
-
+compar		DWORD 69
+hundred		DWORD 100
 
 
 
@@ -288,6 +288,7 @@ mov esi, 0
 finit
 fldz
 fst temporary1
+fst temporary1
 corelation:
 	finit
 	fld Ymeansub[esi * TYPE Ymeansub]
@@ -367,7 +368,7 @@ MOV centerX, 60d
 MOV centerY, 14d
 call readint
 call clrscr
-call Loading  ; Itna Farigh nahi hn m
+;call Loading  ; Itna Farigh nahi hn m
 
 call ClrScr
 fld StandardX
@@ -569,8 +570,19 @@ call GoToXy
 
 fld pred
 fmul toMul
-fcom compar
-JG GRE
+fstp temp2
+
+
+fld temp2
+fimul hundred 
+fistp temp
+
+
+
+
+MOV eax, temp
+cmp eax, compar
+JB GRE
 MOV edx, OFFSET output2
 call WriteString
 JMP re
